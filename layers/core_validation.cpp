@@ -94,9 +94,6 @@ std::string to_string(T var) {
 }
 #endif
 
-// This intentionally includes a cpp file
-#include "vk_safe_struct.cpp"
-
 using mutex_t = std::mutex;
 using lock_guard_t = std::lock_guard<mutex_t>;
 using unique_lock_t = std::unique_lock<mutex_t>;
