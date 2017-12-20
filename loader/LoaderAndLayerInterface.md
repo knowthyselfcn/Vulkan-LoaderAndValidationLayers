@@ -57,74 +57,52 @@ The general concepts in this document are applicable to the loaders available
 for Windows, Linux and Android based systems.
 
 
-#### Who Should Read This Document
+#### 谁应该阅读此文档
 
 这份文档主要的目标读者是Vulkan应用开发者，驱动和layer开发者，然而本文的信息对于想要深入了解Vulkan运行时 lib的人都是有帮助的。
 
 
-#### The Loader
+#### 加载器
 
 应用程序处于加载器的一端，是加载器直接的上层。 应用程序中加载器的另外一侧是ICD，它控制了vulkan兼容的硬件。需要谨记的一点是Vulkan兼容的硬件可以基于图形的、基于计算的，或者二者兼有。 在应用程序和ICD之间，加载器可以插入多个可选的 layers，这些layer各自提供了某些功能。
 
-The loader is responsible for working with the various layers as well as
-supporting multiple GPUs and their drivers.  Any Vulkan function may
-wind up calling into a diverse set of modules: loader, layers, and ICDs.
-The loader is critical to managing the proper dispatching of Vulkan
-functions to the appropriate set of layers and ICDs. The Vulkan object
-model allows the loader to insert layers into a call chain so that the layers
-can process Vulkan functions prior to the ICD being called.
+加载器负责和各种layers打交道，并负责支持多GPU及驱动程序。任何Vulkan函数最终都会访问到各个模块：加载器、layers和ICDs。加载器肩负把Vulkan函数转发到合适layers和ICDs的重责。Vulkan对象模型允许加载器想调用链中插入layers，以便layers可以在ICD被调用之前处理Vulkan函数。
 
-This document is intended to provide an overview of the necessary interfaces
-between each of these.
+此文档旨在提供在这些概念之间必需的接口的概览。
 
 
-##### Goals of the Loader
+##### 加载器的职责
 
-The loader was designed with the following goals in mind.
- 1. Support one or more Vulkan-capable ICD on a user's computer system without
-them interfering with one another.
- 2. Support Vulkan Layers which are optional modules that can be enabled by an
-application, developer, or standard system settings.
+加载器设计之初衷如下：
+ 1. 在用户的计算机系统上支持多个Vulkan兼容的ICD，且互相之间不影响。
+ 2. 支持Vulkan 层，它是可选的模块，可以被应用程序、用户或者系统设定所启用。
  3. Impact the overall performance of a Vulkan application in the lowest
 possible fashion.
 
 
 #### Layers
 
-Layers are optional components that augment the Vulkan system.  They can
-intercept, evaluate, and modify existing Vulkan functions on their way from the
-application down to the hardware.  Layers are implemented as libraries that can
-be enabled in different ways (including by application request) and are loaded
-during CreateInstance.  Each layer can choose to hook (intercept) any Vulkan
-functions which in turn can be ignored or augmented.  A layer does not need to
-intercept all Vulkan functions.  It may choose to intercept all known functions,
-or, it may choose to intercept only one function.
+Layers是增强Vulkan系统可选的组件。它们可以在已有的Vulkan函数从应用程序到硬件之间进行拦截、求值，甚至修改。
+Layers通过libraries来实现，可以通过多种不同的方式被启用（包括应用程序的请求），在CreateInstance的时候被载入。
+每一个layer可以选择hook（拦截）任何Vulkan函数，终造成vulkan函数被忽略或者增强。一个layer可以不拦截任何Vulkan函数。它可以选择拦截任何已知的的函数，或者可以选择只拦截一个函数。
 
-Some examples of features that layers may expose include:
- * Validating API usage
- * Adding the ability to perform Vulkan API tracing and debugging
- * Overlay additional content on the applications surfaces
+layers能带来的特性案例可以包括如下几个：
+ * 验证API的使用
+ * 增强Vulkan API的跟踪和调试能力
+ * 给应用程序的surfaces覆盖追加的内容
 
-Because layers are optionally, you may choose to enable layers for debugging
-your application, but then disable any layer usage when you release your
-product.
+因为layers是可选的，你可以选择启用layers来调试你的应用程序，但是在发布产品的时候关闭任何layer。
 
 
 #### Installable Client Drivers
 
-Vulkan allows multiple Installable Client Drivers (ICDs) each supporting one
-or more devices (represented by a Vulkan `VkPhysicalDevice` object) to be used
-collectively. The loader is responsible for discovering available Vulkan ICDs on
-the system. Given a list of available ICDs, the loader can enumerate all the
-physical devices available  for an application and return this information to
-the application.
+Vulkan允许多个 Installable Client Drivers (ICDs) 的一个系统中共存，每一个支持一个或者多个物理设备（通过  `VkPhysicalDevice` 对象表示）。
+加载器负责查找系统上可用的Vulkan ICDs。当给出一组可用的ICDs，加载器可以遍历所有可用的物理设备，并把这些信息返回给应用程序。
 
 
 #### Instance Versus Device
 
-There is an important concept which you will see brought up repeatedly
-throughout this document.  Many functions, extensions, and other things in
-Vulkan are separated into two main groups:
+在此文档中你可能一直看到一个非常重要的概念。很多函数，拓展和Vulkan中其他的东西都被分为两类：
  * Instance-related Objects
  * Device-related Objects
 
@@ -195,15 +173,15 @@ the document.
 
 #### 分发表和调用链
 
-Vulkan使用对象模型来控制特定动作/操作的生命周期。被操作的对象一般都作为Vulkan调用的第一个参数，而且是一个可分发对象（参看Vulkan规范 2.3节 对象模型）。在底层，可分发对象的handle是一个指向数据结构的指针，数据结构反过来包含了一个由加载器维护的分发表。这个分发表包含了能够获取到这个对象的Vulkan函数的指针。
+Vulkan使用对象模型来控制特定动作/操作的生命周期。被操作的对象一般都作为Vulkan调用的第一个参数，而且是一个可分发对象（参看Vulkan规范 2.3节 对象模型）。在底层，可分发对象的handle是一个指向数据结构的指针，数据结构反过来包含了一个由加载器维护的分发表。这个转发表包含了能够获取到这个对象的Vulkan函数的指针。
 
 加载器维护了两种类型的分发表：
- - Instance分发表
+ - Instance转发表
   - 在`vkCreateInstance`调用中加载器创建的
- - 设备分发表
+ - 设备转发表
   - 在`vkCreateDevice`调用中加载器创建的
 
-在此时，应用程序或者系统可以指定可选的将被包括的layers。加载器将初始化指定的layers，来为每一个Vulkan函数创建一个调用链，分发表的每一条将指向该调用链的第一个元素。故，加载器为每一个被创建的 `VkInstance` 建立了instance调用链，为每一个被创建的`VkDevice` 建立了设备调用链。
+在此时，应用程序或者系统可以指定可选的将被包括的layers。加载器将初始化指定的layers，来为每一个Vulkan函数创建一个调用链，转发表的每一条将指向该调用链的第一个元素。故，加载器为每一个被创建的 `VkInstance` 建立了instance调用链，为每一个被创建的`VkDevice` 建立了设备调用链。
 
 当应用程序调用一个Vulkan函数，通常这将先访问加载器的*trampoline* 函数。这些*trampoline* 函数很小、简短，能跳转到给定对象的分发表的某一条。另外，对于在instance调用链的函数，加载器有额外的函数，称为 *terminator*，它在所有即将启用的layers把合适的信息存放到可选的ICDs之后被调用。
 
