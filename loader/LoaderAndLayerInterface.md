@@ -57,12 +57,12 @@ The general concepts in this document are applicable to the loaders available
 for Windows, Linux and Android based systems.
 
 
-#### 谁应该阅读此文档
+#### Who Should Read This Document
 
 这份文档主要的目标读者是Vulkan应用开发者，驱动和layer开发者，然而本文的信息对于想要深入了解Vulkan运行时 lib的人都是有帮助的。
 
 
-#### 加载器
+#### The Loader
 
 应用程序处于加载器的一端，是加载器直接的上层。 应用程序中加载器的另外一侧是ICD，它控制了vulkan兼容的硬件。需要谨记的一点是Vulkan兼容的硬件可以基于图形的、基于计算的，或者二者兼有。 在应用程序和ICD之间，加载器可以插入多个可选的 layers，这些layer各自提供了某些功能。
 
@@ -71,7 +71,7 @@ for Windows, Linux and Android based systems.
 此文档旨在提供在这些概念之间必需的接口的概览。
 
 
-##### 加载器的职责
+##### Goals of the Loader
 
 加载器设计之初衷如下：
  1. 在用户的计算机系统上支持多个Vulkan兼容的ICD，且互相之间不影响。
@@ -109,15 +109,11 @@ Vulkan允许多个 Installable Client Drivers (ICDs) 的一个系统中共存，
 
 ##### Instance-related Objects
 
-A Vulkan Instance is a high-level construct used to provide Vulkan system-level
-information, or functionality.  Vulkan objects associated directly with an
-instance are:
+一个Vulkan实例是一个高层次的构造，用来提供Vulkan系统层次的信息或者功能。和instance直接相关的Vulkan对象有：
  * `VkInstance`
  * `VkPhysicalDevice`
 
-An Instance function is any Vulkan function which takes as its first parameter
-either an object from the Instance list, or nothing at all.  Some Vulkan
-Instance functions are:
+ 一个instance函数的定义是任何把Instance列表的其中一个作为第一个参数，或者没有参数的函数。一些Vulkan Instance函数有：
  * `vkEnumerateInstanceExtensionProperties`
  * `vkEnumeratePhysicalDevices`
  * `vkCreateInstance`
@@ -171,7 +167,7 @@ functions extending the Vulkan language. You can read more about these later in
 the document.
 
 
-#### 分发表和调用链
+#### Dispatch Tables and Call Chains
 
 Vulkan使用对象模型来控制特定动作/操作的生命周期。被操作的对象一般都作为Vulkan调用的第一个参数，而且是一个可分发对象（参看Vulkan规范 2.3节 对象模型）。在底层，可分发对象的handle是一个指向数据结构的指针，数据结构反过来包含了一个由加载器维护的分发表。这个转发表包含了能够获取到这个对象的Vulkan函数的指针。
 
