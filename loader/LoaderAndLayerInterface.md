@@ -131,16 +131,14 @@ the Vulkan language.  These will be discussed in more detail later.
 
 ##### Device-related Objects
 
-A Vulkan Device, on the other-hand, is a logical identifier used to associate
-functions with a particular physical device on a user's system.  Vulkan
-constructs associated directly with a device include:
+一个Vulkan设备，从另外一方面讲，是一个用来关联函数和用户系统上特定物理设备的逻辑标识符。
+与设备直接关联的Vulkan数据结构有：
  * `VkDevice`
  * `VkQueue`
  * `VkCommandBuffer`
  * Any dispatchable object that is a child of a one of the above.
 
-A Device function is any Vulkan function which takes any Device Object as its
-first parameter.  Some Vulkan Device functions are:
+ 一个设备函数是任何把设备对象作为第一个参数的函数。一些设备函数有：
  * `vkQueueSubmit`
  * `vkBeginCommandBuffer`
  * `vkCreateEvent`
@@ -162,9 +160,8 @@ The best solution is to query Instance extension functions using
 [Best Application Performance Setup](#best-application-performance-setup) for
 more information on this.
 
-As with Instance extensions, a Device extension is a set of Vulkan Device
-functions extending the Vulkan language. You can read more about these later in
-the document.
+和Instance拓展一样，一个设备拓展是一系列的拓展了Vulkan语言的Vulkan设备函数。
+你可以在本文档后面有更多的了解。
 
 
 #### Dispatch Tables and Call Chains
@@ -193,9 +190,7 @@ Vulkan使用对象模型来控制特定动作/操作的生命周期。被操作�
 
 ##### Device Call Chain Example
 
-Device call chains are created at `vkCreateDevice` and are generally simpler
-because they deal with only a single device and the ICD can always be the
-*terminator* of the chain. 
+设备调用链是在`vkCreateDevice` 调用中创建的，通常较为简单，因为他们只和一个物理设备打交道，ICD也总是调用链的 *terminator*。
 
 ![Loader Device Call Chain](./images/loader_device_chain_loader.png)
 
@@ -205,8 +200,7 @@ because they deal with only a single device and the ICD can always be the
 
 ## Application Interface to the Loader
 
-In this section we'll discuss how an application interacts with the loader,
-including:
+在本节，我们将讨论应用程序如何和加载器交互协作，包括：
   * [Interfacing with Vulkan Functions](#interfacing-with-vulkan-functions)
     * [Vulkan Direct Exports](#vulkan-direct-exports)
     * [Directly Linking to the Loader](#directly-linking-to-the-loader)
@@ -227,50 +221,35 @@ including:
 
   
 #### Interfacing with Vulkan Functions
-There are several ways you can interface with Vulkan functions through the
-loader.
+你可以通过加载器用多种方式和Vulkan函数交互。
 
 
 ##### Vulkan Direct Exports
-The loader library on Windows, Linux and Android will export all core Vulkan
-and all appropriate Window System Interface (WSI) extensions. This is done to
-make it simpler to get started with Vulkan development. When an application
-links directly to the loader library in this way, the Vulkan calls are simple
-*trampoline* functions that jump to the appropriate dispatch table entry for the
-object they are given.
+在Windows，Linux和Android上的加载器将导出所有的核心Vulkan和所有合适的 Window System Interface (WSI) 拓展。完成了这步会让Vulkan开发变得简单。当应用程序通过这种方式直接链接到加载器library，Vulkan调用只是简单的跳转函数，
+跳转到它们所在的对象在转发表中合适的入口。
 
 
 ##### Directly Linking to the Loader
 
 ###### Dynamic Linking
-The loader is ordinarily distributed as a dynamic library (.dll on Windows or
-.so on Linux) which gets installed to the system path for dynamic libraries.
-Linking to the dynamic library is generally the preferred method of linking to
-the loader, as doing so allows the loader to be updated for bug fixes and
-improvements. Furthermore, the dynamic library is generally installed to Windows
-systems as part of driver installation and is generally provided on Linux
-through the system package manager. This means that applications can usually
-expect a copy of the loader to be present on a system. If applications want to
-be completely sure that a loader is present, they can include a loader or
-runtime installer with their application.
+加载器通常是以动态库的方式发布的（在Windows上是.dll，在Linux上是.so），安装在系统的动态库路径中。
+链接到加载器通常推荐的方式是链接到动态库，这样做允许加载器可以更新版本来修复bug或提升性能。
+还有，动态库通常被安装在Windows 系统中，作为驱动安装的一部分，在Linux系统上通常通过包管理系统提供。
+这意味着应用程序一般可以获取到当前系统中加载器的一份copy。如果应用程序想要百分百保证加载器是存在的，程序可以自带一份加载器安装包。
 
 ###### Static Linking
-The loader can also be used as a static library (this is shipped in the
-Windows SDK as `VKstatic.1.lib`). Linking to the static loader means that the
-user does not need to have a Vulkan runtime installed, and it also guarantees
-that your application will use a specific version of the loader. However, there
-are several downsides to this approach:
+加载器也可以被静态链接（这通常随着Windows SDK一起发布，名为`VKstatic.1.lib`）。链接静态加载器意味着用户不需要系统已经安装过Vulkan运行时环境，这也保证了你的应用程序将使用一个特定版本的加载器。
+然而，这种方式有几个缺陷：
 
-  - The static library can never be updated without re-linking the application
-  - This opens up the possibility that two included libraries could contain
-  different versions of the loader
-    - This could potentially cause conflicts between the different loader versions
+  - 若不重新连接程序则无法更新静态库
+  - 这可能导致包含的两个库可能包含不同版本的加载器
+    - 这可能导致不同版本加载器潜在的的冲突
 
-As a result, it is recommended that users prefer linking to the .dll and
-.so versions of the loader.
+因此，推荐用户使用链接到.dll或.so 的方式。
 
 
 ##### Indirectly Linking to the Loader
+应用程序并不需要直接链接到加载器库，它们可以使用合适的平台特定的动态符号查找
 Applications are not required to link directly to the loader library, instead
 they can use the appropriate platform specific dynamic symbol lookup on the
 loader library to initialize the application's own dispatch table. This allows
