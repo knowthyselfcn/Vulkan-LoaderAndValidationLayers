@@ -1,4 +1,5 @@
-# Architecture of the Vulkan Loader Interfaces
+# Vulkan加载器接口架构
+此文翻译于 https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/blob/master/loader/LoaderAndLayerInterface.md
 
 ## Table of Contents
   * [Overview](#overview)
@@ -58,19 +59,12 @@ for Windows, Linux and Android based systems.
 
 #### Who Should Read This Document
 
-While this document is primarily targeted at developers of Vulkan applications,
-drivers and layers, the information contained in it could be useful to anyone
-wanting a better understanding of the Vulkan runtime.
+这份文档主要的目标读者是Vulkan应用开发者，驱动和layer开发者，然而本文的信息对于想要深入了解Vulkan运行时 lib的人都是有帮助的。
 
 
 #### The Loader
 
-The application sits on one end of, and interfaces directly with, the
-loader.  On the other end of the loader from the application are the ICDs, which
-control the Vulkan-capable hardware.  An important point to remember is that
-Vulkan-capable hardware can be graphics-based, compute-based, or both. Between
-the application and the ICDs the loader can inject a number of optional
-[layers](#layers) that provide special functionality.
+应用程序处于加载器的一端，是加载器直接的上层。 应用程序中加载器的另外一侧是ICD，它控制了vulkan兼容的硬件。需要谨记的一点是Vulkan兼容的硬件可以基于图形的、基于计算的，或者二者兼有。 在应用程序和ICD之间，加载器可以插入多个可选的 layers，这些layer各自提供了某些功能。
 
 The loader is responsible for working with the various layers as well as
 supporting multiple GPUs and their drivers.  Any Vulkan function may
@@ -199,55 +193,28 @@ functions extending the Vulkan language. You can read more about these later in
 the document.
 
 
-#### Dispatch Tables and Call Chains
+#### 分发表和调用链
 
-Vulkan uses an object model to control the scope of a particular action /
-operation.  The object to be acted on is always the first parameter of a Vulkan
-call and is a dispatchable object (see Vulkan specification section 2.3 Object
-Model).  Under the covers, the dispatchable object handle is a pointer to a
-structure, which in turn, contains a pointer to a dispatch table maintained by
-the loader.  This dispatch table contains pointers to the Vulkan functions
-appropriate to that object.
+Vulkan使用对象模型来控制特定动作/操作的生命周期。被操作的对象一般都作为Vulkan调用的第一个参数，而且是一个可分发对象（参看Vulkan规范 2.3节 对象模型）。在底层，可分发对象的handle是一个指向数据结构的指针，数据结构反过来包含了一个由加载器维护的分发表。这个分发表包含了能够获取到这个对象的Vulkan函数的指针。
 
-There are two types of dispatch tables the loader maintains:
- - Instance Dispatch Table
-  - Created in the loader during the call to `vkCreateInstance`
- - Device Dispatch Table
-  - Created in the loader during the call to `vkCreateDevice`
+加载器维护了两种类型的分发表：
+ - Instance分发表
+  - 在`vkCreateInstance`调用中加载器创建的
+ - 设备分发表
+  - 在`vkCreateDevice`调用中加载器创建的
 
-At that time the application and/or system can specify optional layers to be
-included.  The loader will initialize the specified layers to create a call
-chain for each Vulkan function and each entry of the dispatch table will point
-to the first element of that chain. Thus, the loader builds an instance call
-chain for each `VkInstance` that is created and a device call chain for each
-`VkDevice` that is created.
+在此时，应用程序或者系统可以指定可选的将被包括的layers。加载器将初始化指定的layers，来为每一个Vulkan函数创建一个调用链，分发表的每一条将指向该调用链的第一个元素。故，加载器为每一个被创建的 `VkInstance` 建立了instance调用链，为每一个被创建的`VkDevice` 建立了设备调用链。
 
-When an application calls a Vulkan function, this typically will first hit a
-*trampoline* function in the loader.  These *trampoline* functions are small,
-simple functions that jump to the appropriate dispatch table entry for the
-object they are given.  Additionally, for functions in the instance call chain,
-the loader has an additional function, called a *terminator*, which is called
-after all enabled layers to marshall the appropriate information to all
-available ICDs.
+当应用程序调用一个Vulkan函数，通常这将先访问加载器的*trampoline* 函数。这些*trampoline* 函数很小、简短，能跳转到给定对象的分发表的某一条。另外，对于在instance调用链的函数，加载器有额外的函数，称为 *terminator*，它在所有即将启用的layers把合适的信息存放到可选的ICDs之后被调用。
 
 
 ##### Instance Call Chain Example
 
-For example, the diagram below represents what happens in the call chain for
-`vkCreateInstance`. After initializing the chain, the loader will call into the
-first layer's `vkCreateInstance` which will call the next finally terminating in
-the loader again where this function calls every ICD's `vkCreateInstance` and
-saves the results. This allows every enabled layer for this chain to set up
-what it needs based on the `VkInstanceCreateInfo` structure from the
-application.
+例如，如下的图展示了`vkCreateInstance`的调用链发生了什么。在初始化链之后，加载器将调用第一层的`vkCreateInstance`，它将再次调用加载器，这个函数将调用每一个ICD的`vkCreateInstance` 并保存运行结果。这允许调用链中每一个被启用的层都能基于`VkInstanceCreateInfo`数据结构建立自己所需的信息。
 
 ![Instance Call Chain](./images/loader_instance_chain.png)
 
-This also highlights some of the complexity the loader must manage when using
-instance call chains. As shown here, the loader's *terminator* must aggregate
-information to and from multiple ICDs when they are present. This implies that
-the loader has to be aware of any instance-level extensions which work on a
-`VkInstance` to aggregate them correctly.
+这也强调出来加载器在使用instance调用链时必须管理好各种复杂性。如下所示，加载器的 *terminator* 必须在可见的多个ICD中收集或发送分类信息。这表示加载器必须获知实例层的各个拓展，以便更好的分类。
 
 
 ##### Device Call Chain Example
