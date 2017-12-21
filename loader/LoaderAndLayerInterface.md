@@ -249,26 +249,15 @@ Vulkan使用对象模型来控制特定动作/操作的生命周期。被操作�
 
 
 ##### Indirectly Linking to the Loader
-应用程序并不需要直接链接到加载器库，它们可以使用合适的平台特定的动态符号查找
-Applications are not required to link directly to the loader library, instead
-they can use the appropriate platform specific dynamic symbol lookup on the
-loader library to initialize the application's own dispatch table. This allows
-an application to fail gracefully if the loader cannot be found.  It also
-provides the fastest mechanism for the application to call Vulkan functions. An
-application will only need to query (via system calls such as dlsym()) the
-address of `vkGetInstanceProcAddr` from the loader library. Using
-`vkGetInstanceProcAddr` the application can then discover the address of all
-functions and extensions available, such as `vkCreateInstance`,
-`vkEnumerateInstanceExtensionProperties` and
-`vkEnumerateInstanceLayerProperties` in a platform-independent way.
+应用程序并不需要直接链接到加载器库，它们可以对加载器使用合适的平台特定的动态符号查找方式来初始化应用程序自己的转发表。
+这允许应用程序在没有找到加载器时可以从容的退出。这也给应用程序提供了调用Vulkan函数最快的机制。
+应用程序只要向加载器库查询 `vkGetInstanceProcAddr` 的地址（通过dlsym()这个系统调用）。应用程序可以使用 `vkGetInstanceProcAddr` 来找到所有函数的地址和可用的拓展的地址，
+如 `vkCreateInstance`,`vkEnumerateInstanceExtensionProperties` 和`vkEnumerateInstanceLayerProperties`。
 
 
 ##### Best Application Performance Setup
 
-If you desire the best performance possible, you should setup your own
-dispatch table so that all your Instance functions are queried using
-`vkGetInstanceProcAddr` and all your Device functions are queried using
-`vkGetDeviceProcAddr`.
+如果你希望得到最佳性能，你应该建立起自己的转发表，这样你所有的实例函数都可以通过 `vkGetInstanceProcAddr` 获取到，所有的设备函数可以使用`vkGetDeviceProcAddr` 获取到。
 
 *Why should you do this?*
 
@@ -319,61 +308,36 @@ extension or core device entry-points.
 
 ##### ABI Versioning
 
-The Vulkan loader library will be distributed in various ways including Vulkan
-SDKs, OS package distributions and Independent Hardware Vendor (IHV) driver
-packages. These details are beyond the scope of this document. However, the name
-and versioning of the Vulkan loader library is specified so an app can link to
-the correct Vulkan ABI library version. Vulkan versioning is such that ABI
-backwards compatibility is guaranteed for all versions with the same major
-number (e.g. 1.0 and 1.1). On Windows, the loader library encodes the ABI
-version in its name such that multiple ABI incompatible versions of the loader
-can peacefully coexist on a given system. The Vulkan loader library file name is
-`vulkan-<ABI version>.dll`. For example, for Vulkan version 1.X on Windows the
-library filename is vulkan-1.dll. And this library file can typically be found
-in the windows/system32 directory (on 64-bit Windows installs, the 32-bit
-version of the loader with the same name can be found in the windows/sysWOW64
-directory).
+Vulkan加载器库有各种分发方式，包括Vulkan SDK、操作系统包管理分发和Independent Hardware Vendor (IHV) 驱动安装包。
+这些东西不在本文的关注点内。然而，Vulkan加载器库的名字和版本需要被明确下来，应用程序才能链接到正确版本的Vulkan ABI 库。
+Vulkan 版本机制保证ABI 在同一个主版本号内向后兼容。（比如1.0 和1.1）。在Windows上，加载器库文件名字包含了ABI版本，所以会多个版本的Vulkan加载器库会同时存在。
+Vulkan加载器库文件名形如 `vulkan-<ABI version>.dll`。例如，对于Windows上Vulkan 1.X版本，库文件名为 vulkan-1.dll。
+这个文件通常可以在 windows/system32 目录找到（在64位系统上，32位版本的加载器以同样的命在可以在windows/sysWOW64 目录找到）。
 
-For Linux, shared libraries are versioned based on a suffix. Thus, the ABI
-number is not encoded in the base of the library filename as on Windows. On
-Linux an application wanting to link to the latest Vulkan ABI version would
-just link to the name vulkan (libvulkan.so).  A specific Vulkan ABI version can
-also be linked to by applications (e.g. libvulkan.so.1).
+对于Linux，共享库的版本号以后缀决定。故，ABI号并不如Windows上那样编码。
+在Linux上应用程序如果想要连接最新版本的Vulkan ABI版本，只需要链接libvulkan.so 即可。也可以由应用程序指定链接的Vulkan ABI版本（如libvulkan.so.1）。
 
 
 #### Application Layer Usage
 
-Applications desiring Vulkan functionality beyond what the core API offers may
-use various layers or extensions. A layer cannot introduce new Vulkan core API
-entry-points to an application that are not exposed in Vulkan.h.  However,
-layers may offer extensions that introduce new Vulkan commands that can be
-queried through the extension interface.
+应用程序可以使用各种layers或者拓展来获取在核心API 提供的基础上更多的能力。
+一个layer并不能引入在Vulkan.h中暴露出来的新的Vulkan核心API 函数。然而，layers可以提供拓展，来引入新的Vulkan命令，可以通过查询拓展接口来获取到。
 
-A common use of layers is for API validation which can be enabled by
-loading the layer during application development, but not loading the layer
-for application release. This eliminates the overhead of validating the
-application's usage of the API, something that wasn't available on some previous
-graphics APIs.
+layers常见的一种使用方式是API验证，它可以在应用程序开发过程中载入layer时被启动，但是在应用程序发布时被关闭。
+这减少了验证应用程序使用API的性能损失，在一些其他的图形API中并没有这个特性。
 
-To find out what layers are available to your application, use
-`vkEnumerateInstanceLayerProperties`.  This will report all layers
-that have been discovered by the loader.  The loader looks in various locations
-to find layers on the system.  For more information see the
-[Layer discovery](#layer-discovery) section below.
+可以使用`vkEnumerateInstanceLayerProperties`来获知应用程序可以用哪些layers。
+它会报告加载器发现的所有layers。加载器在系统的各个路径搜索layers。关于此点，请参考下节的[Layer discovery](#layer-discovery) 。
 
-To enable a layer, or layers, simply pass the name of the layers you wish to
-enable in the `ppEnabledLayerNames` field of the `VkInstanceCreateInfo` during
-a call to `vkCreateInstance`.  Once done, the layers you have enabled will be
-active for all Vulkan functions using the created `VkInstance`, and any of
-its child objects.
+要想启用一个layer，仅需要在调用`vkCreateInstance`时把你想要启用的layer的名字传递到 `VkInstanceCreateInfo`的 `ppEnabledLayerNames`域。
+一旦完成了，你想要启用的layers对于所有的使用已创建的`VkInstance`对象及其子对象的Vulkan函数都已经启用了。
 
 **NOTE:** Layer ordering is important in several cases since some layers
 interact with each other.  Be careful when enabling layers as this may be
 the case.  See the [Overall Layer Ordering](#overall-layer-ordering) section
 for more information.
 
-The following code section shows how you would go about enabling the
-VK_LAYER_LUNARG_standard_validation layer.
+如下代码展示了如何启用VK_LAYER_LUNARG_standard_validation layer。
 
 ```
    char *instance_validation_layers[] = {
@@ -400,12 +364,8 @@ VK_LAYER_LUNARG_standard_validation layer.
     err = vkCreateInstance(&inst_info, NULL, &demo->inst);
 ```
 
-At `vkCreateInstance` and `vkCreateDevice`, the loader constructs call chains
-that include the application specified (enabled) layers.  Order is important in
-the `ppEnabledLayerNames` array; array element 0 is the topmost (closest to the
-application) layer inserted in the chain and the last array element is closest
-to the driver.  See the [Overall Layer Ordering](#overall-layer-ordering)
-section for more information on layer ordering.
+在 `vkCreateInstance` 和 `vkCreateDevice`时，加载器构造了调用链，包含应用程序指定启用的layers。  `ppEnabledLayerNames` 数组中元素的顺序非常重要。
+0号元素是调用链最顶层的layer，最后一个元素距离驱动最近。参看  [Overall Layer Ordering](#overall-layer-ordering) 一节来获取关于layer排序的信息。
 
 **NOTE:** *Device Layers Are Now Deprecated*
 > `vkCreateDevice` originally was able to select layers in a similar manner to
@@ -423,24 +383,14 @@ section for more information on layer ordering.
 
 ##### Implicit vs Explicit Layers
 
-Explicit layers are layers which are enabled by an application (e.g. with the
-vkCreateInstance function), or by an environment variable (as mentioned
-previously).
+显式layers是被应用程序启用的layers（例如，通过vkCreateInstance 函数启用），或者通过环境变量（如前面提到的）。
 
-Implicit layers are those which are enabled by their existence. For example,
-certain application environments (e.g. Steam or an automotive infotainment
-system) may have layers which they always want enabled for all applications
-that they start. Other implicit layers may be for all applications started on a
-given system (e.g. layers that overlay frames-per-second). Implicit layers are
-enabled automatically, whereas explicit layers must be enabled explicitly.
+隐式layers是那些默认存在的layers。例如，特定的应用程序环境（如Steam或者娱乐系统）可能有对于所有应用程序都启用的layers。其他的隐式layers可能有系统给所有的程序都自动启用了，
+相比之下显式layers需要显式地启用。
 
-Implicit layers have an additional requirement over explicit layers in that they
-require being able to be disabled by an environmental variable.  This is due
-to the fact that they are not visible to the application and could cause issues.
-A good principle to keep in mind would be to define both an enable and disable
-environment variable so the users can deterministicly enable the functionality.
-On Desktop platforms (Windows and Linux), these enable/disable settings are
-defined in the layer's JSON file.
+隐式层相比于显式层有一些附加的要求，它们需要受环境变量控制来启用、关闭。这是因为它们不受应用程序影响，也不会造成任何问题。
+一个好的准则就是记住要定义启动和关闭layers的环境变量，这样用户就可以决定启用哪些功能了。
+在桌面平台（Windows和Linux），这些启用/关闭设定都在层的JSON文件中定义了。
 
 Discovery of system-installed implicit and explicit layers is described later in
 the [Layer Discovery Section](#layer-discovery).  For now, simply know that what
