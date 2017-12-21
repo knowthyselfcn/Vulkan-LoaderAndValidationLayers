@@ -399,26 +399,19 @@ system, as shown in the table below.
 
 | Operating System | Implicit Layer Identification |
 |----------------|--------------------|
-| Windows  | Implicit Layers are located in a different Windows registry location than Explicit Layers. |
-| Linux | Implicit Layers are located in a different directory location than Explicit Layers. |
-| Android | There is **No Support For Implicit Layers** on Android. |
+| Windows  | 隐式层和显式层在不同的Windows注册表位置 |
+| Linux | 隐式层和显式层在不同的目录中|
+| Android | Android  ** 不支持显式层 ** on Android. |
 
 
 ##### Forcing Layer Source Folders
 
-Developers may need to use special, pre-production layers, without modifying the
-system-installed layers. You can direct the loader to look for layers in a
-specific folder by defining the "VK\_LAYER\_PATH" environment variable.  This
-will override the mechanism used for finding system-installed layers. Because
-layers of interest may exist in several disinct folders on a system, this
-environment variable can containis several paths seperated by the operating
-specific path separator.  On Windows, each separate folder should be separated
-in the list using a semi-colon.  On Linux, each folder name should be separated
-using a colon.
+开发者也许需要使用特殊的，预先产生的layers，而无需修改系统安装的layers。
+你可以通过定义"VK\_LAYER\_PATH"  环境变量来引导加载器到一个特定的文件夹搜寻layers。
+这将覆盖查找系统安装的layers的机制。因为重点的layers可能在系统的不同文件夹中，这个环境变量可以包含几个不同的路径，以系统特定路径分隔符来分割。
+在Windows上，每一个文件夹路径在列表中都应该用一个分号来分割。在Linux上每个文件夹路径都应该用一个冒号来分割。
 
-If "VK\_LAYER\_PATH" exists, **only** the folders listed in it will be scanned
-for layers.  Each directory listed should be the full pathname of a folder
-containing layer manifest files.
+如果 "VK\_LAYER\_PATH" 存在， **只有** 这个文件夹会被扫描。列表中每一个目录都应该是包含layer明细文件的全路径。
 
 
 ##### Forcing Layers to be Enabled on Windows and Linux
@@ -615,10 +608,8 @@ Additionally, this behavior will cause the loader to throw an error during
 to protect applications so that they don't inadvertantly use functionality
 which could lead to a crash.  
 
-On the other-hand, if you know you can safely use the extension, you may disable
-the filtering by defining the environment variable `VK_LOADER_DISABLE_INST_EXT_FILTER`
-and setting the value to a non-zero number.  This will effectively disable the
-loader's filtering out of instance extension names.
+另外一方面，如果你能够安全的使用拓展，你可以定义环境变量 `VK_LOADER_DISABLE_INST_EXT_FILTER` 来关闭过滤，并设置这个值为一个非0值。
+这将高效禁用加载器的过滤实例拓展的名字。
 
 <br/>
 <br/>
