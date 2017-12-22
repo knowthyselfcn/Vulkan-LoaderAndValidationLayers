@@ -258,49 +258,31 @@ Vulkan使用对象模型来控制特定动作/操作的生命周期。被操作�
 
 *Why should you do this?*
 
-The answer comes in how the call chain of Instance functions are implemented
-versus the call chain of a Device functions.  Remember, a [Vulkan Instance is a
-high-level construct used to provide Vulkan system-level information](#instance-
-related-objects). Because of this, Instance functions need to be broadcasted to
-every available ICD on the system.  The following diagram shows an approximate
-view of an Instance call chain with 3 enabled layers:
+这个答案取决于实例函数调用链和设备函数调用链是如何被实现的。记住，一个[Vulkan 实例是一个高级的数据结构，用来提供Vulkan系统级别的信息](#instance-related-objects)。
+因此，实例函数需要传播到系统上所有可用的ICD。下图展示了启用三个layers是实例调用链的视图：
 
 ![Instance Call Chain](./images/loader_instance_chain.png)
 
-This is also how a Vulkan Device function call chain looks if you query it
-using `vkGetInstanceProcAddr`.  On the otherhand, a Device
-function doesn't need to worry about the broadcast becuase it knows specifically
-which associated ICD and which associated Physical Device the call should
-terminate at.  Because of this, the loader doesn't need to get involved between
-any enabled layers and the ICD.  Thus, if you used a loader-exported Vulkan
-Device function, the call chain in the same scenario as above would look like:
+若你使用`vkGetInstanceProcAddr`查询它的话，这也是Vulkan设备函数调用链看起来的样子。
+在另外一方面，一个设备函数并不需要担心传播，因为它已经知道自己关联的ICD和和函数所应该最后被调用的物理设备了。
+由此，加载器不需要和任何启用的layers与ICD相干。故，如果你使用一个加载器暴露出来的设备函数，如上描述情形的调用链将如下所示：
 
 ![Loader Device Call Chain](./images/loader_device_chain_loader.png)
 
-An even better solution would be for an application to perform a
-`vkGetDeviceProcAddr` call on all Device functions.  This further optimizes the
-call chain by removing the loader all-together under most scenarios:
+一个更好的解决方案是在应用程序中使用`vkGetDeviceProcAddr` 来调用所有的设备函数。这将通过移出大多数情形下加载器的中无关紧要的部分来进行更多优化。
 
 ![Application Device Call Chain](./images/loader_device_chain_app.png)
 
-Also, notice if no layers are enabled, your application function pointer would
-point **directly to the ICD**.  If called enough, those fewer calls can add up
-to performance savings.
+还有，注意如果没有启用任何layer，你的应用程序函数指针将直接指向ICD。如果调用次数足够多，将带来一些性能提升。
 
-**NOTE:** There are some Device functions which still require the loader to
-intercept them with a *trampoline* and *terminator*. There are very few of
-these, but they are typically functions which the loader wraps with its own
-data.  In those cases, even the Device call chain will continue to look like the
-Instance call chain.  One example of a Device function requiring a *terminator*
-is `vkCreateSwapchainKHR`.  For that function, the loader needs to potentially
-convert the KHR_surface object into an ICD-specific KHR_surface object prior to
-passing down the rest of the function's information to the ICD.
 
-Remember:
- * `vkGetInstanceProcAddr` can be used to query
-either device or instance entry-points in addition to all core entry-points.
- * `vkGetDeviceProcAddr` can only be used to query for device
-extension or core device entry-points.
+**注意:** 有一些设备函数要求加载器用一个 *trampoline* and *terminator*来拦截它们。虽然个数比较少，但是，它们是典型的需要加载器包装他们数据的函数。
+在这些情形下，即使是设备函数调用链看起来也像是实例调用链。一个例子是`vkCreateSwapchainKHR`要求一个 *terminator* 。对于这个函数，在把函数剩下的信息传递给ICD之前，
+加载器需要把 KHR_surface 对象转换为一个ICD特定的 KHR_surface。
+
+记住:
+ * `vkGetInstanceProcAddr` 可以用来查询设备或者实例入口函数（包括所有核心的入口函数）。
+ * `vkGetDeviceProcAddr` 只可以用来查询设备拓展或者核心的设备入口函数。
 
 
 ##### ABI Versioning
