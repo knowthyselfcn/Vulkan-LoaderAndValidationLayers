@@ -389,16 +389,15 @@ for more information.
 一个好的准则就是记住要定义启动和关闭layers的环境变量，这样用户就可以决定启用哪些功能了。
 在桌面平台（Windows和Linux），这些启用/关闭设定都在层的JSON文件中定义了。
 
-Discovery of system-installed implicit and explicit layers is described later in
-the [Layer Discovery Section](#layer-discovery).  For now, simply know that what
-distinguishes a layer as implicit or explicit is dependent on the Operating
-system, as shown in the table below.
+关于系统安装的显式和隐式layers在稍后的  [Layer Discovery Section](#layer-discovery) 讲解。
+我们暂时只需要知道显式、隐式的区别取决于操作系统即可，如下表所示：
+
 
 | Operating System | Implicit Layer Identification |
 |----------------|--------------------|
 | Windows  | 隐式层和显式层在不同的Windows注册表位置 |
 | Linux | 隐式层和显式层在不同的目录中|
-| Android | Android  ** 不支持显式层 ** on Android. |
+| Android | Android  ** 不支持显式层 **  |
 
 
 ##### Forcing Layer Source Folders
@@ -413,24 +412,15 @@ system, as shown in the table below.
 
 ##### Forcing Layers to be Enabled on Windows and Linux
 
-Developers may want to enable layers that are not enabled by the given
-application they are using. On Linux and Windows, the environment variable
-"VK\_INSTANCE\_LAYERS" can be used to enable additional layers which are
-not specified (enabled) by the application at `vkCreateInstance`.
-"VK\_INSTANCE\_LAYERS" is a colon (Linux)/semi-colon (Windows) separated
-list of layer names to enable. Order is relevant with the first layer in the
-list being the top-most layer (closest to the application) and the last
-layer in the list being the bottom-most layer (closest to the driver).
-See the [Overall Layer Ordering](#overall-layer-ordering) section
-for more information.
+开发者可能想要那些在使用的给定应用程序并没有被启用的层开始启用。
+在Linux和Windows上，环境变量"VK\_INSTANCE\_LAYERS" 可以用来启用那些并没有被应用程序的vkCreateInstance`指定的层。
+"VK\_INSTANCE\_LAYERS" 是一个以冒号（Linux）、分号（Windows）间隔的层名字的列表。
+前后顺序的关系是：在列表中第一个是最顶层的层（靠近应用程序），列表最后一个是最底层的layer（靠近驱动）。
+参考 [Overall Layer Ordering](#overall-layer-ordering) 一节以获取更多细节。
 
-Application specified layers and user specified layers (via environment
-variables) are aggregated and duplicates removed by the loader when enabling
-layers. Layers specified via environment variable are top-most (closest to the
-application) while layers specified by the application are bottommost.
+应用程序指定的layers和用户指定的layers（通过环境变量）会被综合，重复的会被加载器删除。通过环境变量指定的layers是最顶层（靠近应用程序），而应用程序指定的layers是最底层的。
 
-An example of using these environment variables to activate the validation
-layer `VK_LAYER_LUNARG_parameter_validation` on Windows or Linux is as follows:
+使用用环境变量的一个例子是在Windows或Linux上启用的验证layer `VK_LAYER_LUNARG_parameter_validation` ：
 
 ```
 > $ export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_parameter_validation
