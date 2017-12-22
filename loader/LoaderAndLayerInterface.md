@@ -143,15 +143,11 @@ Vulkan允许多个 Installable Client Drivers (ICDs) 的一个系统中共存，
 如果你选择使用`vkGetInstanceProcAddr`，它将在调用链上有附加的层，这将些许降低程序性能。
 然而，返回的函数指针可以用在以后创建的任何设备上，只要它关联到同一个Vulkan实例上。
 如果你使用 `vkGetDeviceProcAddr`，调用链将针对特定设备被优化，但是它将  **只** 能在查询到该函数的设备上使用。
- Also, unlike `vkGetInstanceProcAddr`,
-`vkGetDeviceProcAddr` can only be used on core Vulkan Device functions, or
-Device extension functions.
+ 还有，不像 `vkGetInstanceProcAddr`，`vkGetDeviceProcAddr` 只能用于核心的Vulkan设备函数，或者设备拓展函数。
 
-The best solution is to query Instance extension functions using
-`vkGetInstanceProcAddr`, and to query Device extension functions using
-`vkGetDeviceProcAddr`.  See
-[Best Application Performance Setup](#best-application-performance-setup) for
-more information on this.
+最佳解决方案是使用`vkGetInstanceProcAddr`来查询实例拓展函数，使用`vkGetDeviceProcAddr`来查询设备拓展函数。
+参考[Best Application Performance Setup](#best-application-performance-setup) 以获取更多信息。
+
 
 和Instance拓展一样，一个设备拓展是一系列的拓展了Vulkan语言的Vulkan设备函数。
 你可以在本文档后面有更多的了解。
