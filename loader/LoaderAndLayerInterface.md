@@ -143,14 +143,11 @@ the Vulkan language.  These will be discussed in more detail later.
  * `vkBeginCommandBuffer`
  * `vkCreateEvent`
 
-You can query Vulkan Device functions using either `vkGetInstanceProcAddr` or 
-`vkGetDeviceProcAddr`.  If you choose to use `vkGetInstanceProcAddr`, it will
-have an additional level built into the call chain, which will reduce
-performance slightly.  However, the function pointer returned can be used for
-any device created later, as long as it is associated with the same Vulkan
-Instance. If, instead you use `vkGetDeviceProcAddr`, the call chain will be more
-optimized to the specific device, but it will **only** work for the device used
-to query the function function pointer.  Also, unlike `vkGetInstanceProcAddr`,
+你可以使用 `vkGetInstanceProcAddr` 或`vkGetDeviceProcAddr` 来查询Vulkan设备函数。
+如果你选择使用`vkGetInstanceProcAddr`，它将在调用链上有附加的层，这将些许降低程序性能。
+然而，返回的函数指针可以用在以后创建的任何设备上，只要它关联到同一个Vulkan实例上。
+如果你使用 `vkGetDeviceProcAddr`，调用链将针对特定设备被优化，但是它将  **只** 能在查询到该函数的设备上使用。
+ Also, unlike `vkGetInstanceProcAddr`,
 `vkGetDeviceProcAddr` can only be used on core Vulkan Device functions, or
 Device extension functions.
 
