@@ -119,14 +119,10 @@ Vulkan允许多个 Installable Client Drivers (ICDs) 的一个系统中共存，
  * `vkCreateInstance`
  * `vkDestroyInstance`
 
-You query Vulkan Instance functions using `vkGetInstanceProcAddr`.
-`vkGetInstanceProcAddr` can be used to query either device or instance entry-
-points in addition to all core entry-points.  The returned function pointer is
-valid for this Instance and any object created under this Instance (including
-all `VkDevice` objects).  
+你可以使用`vkGetInstanceProcAddr`查询Vulkan实例函数。`vkGetInstanceProcAddr` 可以被用来查询设备或者实例的入口函数（包括核心入口函数）。
+返回的函数指针对实例以及在该实例下创建的对象（包括所有的l `VkDevice` 对象）来说是有效的。
 
-Similarly, an Instance extension is a set of Vulkan Instance functions extending
-the Vulkan language.  These will be discussed in more detail later.
+同样，一个实例拓展是拓展了Vulkan语言的一系列实例函数。这些将在后续小节中讨论。
 
 
 ##### Device-related Objects
