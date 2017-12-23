@@ -303,10 +303,7 @@ layers常见的一种使用方式是API验证，它可以在应用程序开发�
 要想启用一个layer，仅需要在调用`vkCreateInstance`时把你想要启用的layer的名字传递到 `VkInstanceCreateInfo`的 `ppEnabledLayerNames`域。
 一旦完成了，你想要启用的layers对于所有的使用已创建的`VkInstance`对象及其子对象的Vulkan函数都已经启用了。
 
-**NOTE:** Layer ordering is important in several cases since some layers
-interact with each other.  Be careful when enabling layers as this may be
-the case.  See the [Overall Layer Ordering](#overall-layer-ordering) section
-for more information.
+**NOTE:** Layer 顺序在几个场合下非常重要，因为一些layers会相互之间操作。当此情形时需要格外小心。参考[Overall Layer Ordering](#overall-layer-ordering) 一节获取更多信息。
 
 如下代码展示了如何启用VK_LAYER_LUNARG_standard_validation layer。
 
@@ -338,14 +335,11 @@ for more information.
 在 `vkCreateInstance` 和 `vkCreateDevice`时，加载器构造了调用链，包含应用程序指定启用的layers。  `ppEnabledLayerNames` 数组中元素的顺序非常重要。
 0号元素是调用链最顶层的layer，最后一个元素距离驱动最近。参看  [Overall Layer Ordering](#overall-layer-ordering) 一节来获取关于layer排序的信息。
 
-**NOTE:** *Device Layers Are Now Deprecated*
-> `vkCreateDevice` originally was able to select layers in a similar manner to
-`vkCreateInstance`.  This lead to the concept of "instance
-> layers" and "device layers".  It was decided by Khronos to deprecate the
-> "device layer" functionality and only consider "instance layers".
-> Therefore, `vkCreateDevice` will use the layers specified at
-`vkCreateInstance`.
-> Because of this, the following items have been deprecated:
+**NOTE:** *Device Layers 已经被废弃*
+> `vkCreateDevice` 最初可以像`vkCreateInstance`那样选择layers。这导致 "instance
+> layers" 概念 和 "device layers"。Khronos决定废弃"device layer" 功能，只考虑"instance layers"。
+> 因此， `vkCreateDevice` 将会使用`vkCreateInstance`指定的layers。
+> 因此，如下条目也被废弃了：
 > * `VkDeviceCreateInfo` fields:
 >  * `ppEnabledLayerNames`
 >  * `enabledLayerCount`
@@ -408,56 +402,36 @@ as follows:
 
 ![Loader Layer Ordering](./images/loader_layer_order.png)
 
-Ordering may also be important internal to the list of Explicit Layers.
-Some layers may be dependent on other behavior being implemented before
-or after the loader calls it.  For example: the VK_LAYER_LUNARG_core_validation
-layer expects the VK_LAYER_LUNARG_parameter_validation to be called first.
-This is because the VK_LAYER_LUNARG_parameter_validation will filter out any
-invalid `NULL` pointer calls prior to the rest of the validation checking
-done by VK_LAYER_LUNARG_core_validation.  If not done properly, you may see
-crashes in the VK_LAYER_LUNARG_core_validation layer that would otherwise be
-avoided.
-
+排序对于多个显式layer也很重要。一些layers可能依赖于加载器在加载之前或者之后的其他的行为。
+例如， VK_LAYER_LUNARG_core_validation 要求VK_LAYER_LUNARG_parameter_validation 先被调用。
+这是因为VK_LAYER_LUNARG_parameter_validation 将会在VK_LAYER_LUNARG_core_validation进行检查之前
+过滤任何无效的 `NULL`  指针。如果没有这么干，你可能会看到 VK_LAYER_LUNARG_core_validation层崩溃，这本是可以避免的。
 
 #### Application Usage of Extensions
 
-Extensions are optional functionality provided by a layer, the loader or an
-ICD. Extensions can modify the behavior of the Vulkan API and need to be
-specified and registered with Khronos.  These extensions can be created
-by an Independent Hardware Vendor (IHV) to expose new hardware functionality,
-or by a layer writer to expose some internal feature, or by the loader to
-improve functional behavior.  Information about various extensions can be
-found in the Vulkan Spec, and vulkan.h header file.
-
+拓展是由layer，加载器或者ICD提供的可选的功能。拓展可以修改Vulkan API的行为，需要在Khronos进行指定和注册。
+这些拓展可以由Independent Hardware Vendor (IHV) 创建，来暴露出硬件的功能，或者由layer程序制造者来暴露内部特性，或者由加载器来提升性能。
+提取信息用途的拓展可以在Vulkan Spec，vulkah.h头文件中找到。
 
 ##### Instance and Device Extensions
 
-As hinted at in the [Instance Versus Device](#instance-versus-device) section,
-there are really two types of extensions:
+如在  [Instance Versus Device](#instance-versus-device) 一节中提到的，有两种类型的拓展：
  * Instance Extensions
  * Device Extensions
 
-An Instance extension is an extension which modifies existing behavior or
-implements new behavior on instance-level objects, like a `VkInstance` or
-a `VkPhysicalDevice`.  A Device extension is an extension which does the same,
-but for any `VkDevice` object, or any dispatchable object that is a child of a
-`VkDevice` (`VkQueue` and `VkCommandBuffer` are examples of these).
+实例拓展是一种可修改实例级别对象（如`VkInstance`、`VkPhysicalDevice`）上已有行为或者实现新的行为的拓展。
+一个设备拓展也是相似的定义，只是针对于任何 `VkDevice` 对象，或者以`VkDevice`(`VkQueue` 和 `VkCommandBuffer` 等)为父对象的可转发对象。
 
-It is **very** important to know what type of extension you are desiring to
-enable as you will enable Instance extensions during `vkCreateInstance` and
-Device extensions during `vkCreateDevice`.
+当你使用`vkCreateInstance`启用实例拓展，用`vkCreateDevice`启用设备拓展时，知道我们要启用那种类别的拓展  **非常** 重要。
 
-The loader discovers and aggregates all
-extensions from layers (both explicit and implicit), ICDs and the loader before
-reporting them to the application in `vkEnumerateXXXExtensionProperties`
-(where XXX is either "Instance" or "Device").
+加载器从layers（显式的和隐式的）和ICD中收集并综合所有的拓展，发生在加载器在把这些信息通过`vkEnumerateXXXExtensionProperties` XXX 是 "Instance" 或 "Device"）
+返回给应用程序之前。
  - Instance extensions are discovered via
 `vkEnumerateInstanceExtensionProperties`.
  - Device extensions are be discovered via
 `vkEnumerateDeviceExtensionProperties`.
 
-Looking at `vulkan.h`, you'll notice that they are both similar.  For example,
-`vkEnumerateInstanceExtensionProperties` prototype looks as follows:
+查看`vulkan.h`, 你将发现它们很像。比如，`vkEnumerateInstanceExtensionProperties` 原型如下：
 
 ```
    VkResult
