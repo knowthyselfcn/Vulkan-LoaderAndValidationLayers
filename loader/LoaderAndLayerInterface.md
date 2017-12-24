@@ -459,21 +459,14 @@ enabled.
 
 ##### WSI Extensions
 
-Khronos approved WSI extensions are available and provide Windows System
-Integration support for various execution environments. It is important to
-understand that some WSI extensions are valid for all targets, but others are
-particular to a given execution environment (and loader). This desktop loader
-(currently targeting Windows and Linux) only enables and directly exports those
-WSI extensions that are appropriate to the current environment. For the most
-part, the selection is done in the loader using compile-time preprocessor flags.
-All versions of the desktop loader currently expose at least the following WSI
-extension support:
+Khronos已经审批的WSI拓展已经可用了，并提供了多种执行环境的Windows System集成。
+我们必须要明白一些WSI拓展对所有平台都有效，但有一些值针对某些执行环境或者加载器才有效。桌面端加载器（目前只有Windows和Linux支持）只
+启用并直接对当前环境暴露出了这些WSI拓展。WSI拓展的选择，在加载器编译期间就通过标志位指定了。所有版本的桌面端加载器当前都至少保留了如下的WSI拓展：
 - VK_KHR_surface
 - VK_KHR_swapchain
 - VK_KHR_display
 
-In addition, each of the following OS targets for the loader support target-
-specific extensions:
+此外，如下的目标操作系统的加载器都支持其特定的拓展：
 
 | Windowing System | Extensions available |
 |----------------|--------------------|
@@ -482,32 +475,21 @@ specific extensions:
 | Linux (Wayland) | VK_KHR_wayland_surface |
 | Linux (Mir)  | VK_KHR_mir_surface |
 
-**NOTE:** Wayland and Mir targets are not fully supported at this time.  Wayland
-support is present, but should be considered Beta quality.  Mir support is not
-completely implemented at this time.
+**NOTE:** Wayland 和 Mir 平台在当前并没有完全被支持。  Wayland支持只是出现了，但应当被视为beta版本。Mir支持则完全没有实现。
 
-It is important to understand that while the loader may support the various
-entry-points for these extensions, there is a hand-shake required to actually
-use them:
-* At least one physical device must support the extension(s)
-* The application must select such a physical device
-* The application must request the extension(s) be enabled while creating the
-instance or logical device (This depends on whether or not the given extension
-works with an instance or a device).
-* The instance and/or logical device creation must succeed.
+要明确虽然加载支持拓展的多重入口，但是需要认证才能使用它们：
+* 至少有一个物理设备必须支持这些拓展
+* 应用程序必须选择这样的一个物理设备
+* 应用程序必须要求在床将实例或者逻辑设备时，这些拓展被启用了（这依赖于给定的拓展和实例或设备之间是否共同工作）。
+* 实例或者逻辑设备的创建必须要成功
 
-Only then can you expect to properly use a WSI extension in your Vulkan program.
+这些条件都符合之后你才能在Vulkan程序中使用WSI拓展。
 
 
 ##### Unknown Extensions
 
-With the ability to expand Vulkan so easily, extensions will be created that the
-loader knows nothing about.  If the extension is a device extension, the loader
-will pass the unknown entry-point down the device call chain ending with the
-appropriate ICD entry-points.  The same thing will happen, if the extension is
-an instance extension which takes a physical device paramater as it's first
-component.  However, for all other instance extensions the loader will fail to
-load it.
+拓展Vulkan的能力是如此的简单，所以创建拓展时加载器也无需知道拓展相关的信息。如果是设备拓展，加载器将把未知的入口函数传递设备调用链，以ICD入口点函数为作为结束。
+对于实例拓展而言，也是同样的过程，拓展接受一个物理设备参数为第一个component。然而，对于所有其他的实例拓展，加载器将加载失败。
 
 *But why doesn't the loader support unknown instance extensions?*
 <br/>
@@ -515,12 +497,8 @@ Let's look again at the Instance call chain:
 
 ![Instance call chain](./images/loader_instance_chain.png)
 
-Notice that for a normal instance function call, the loader has to handle
-passing along the function call to the available ICDs.  If the loader has no
-idea of the parameters or return value of the instance call, it can't properly
-pass information along to the ICDs.  There may be ways to do this, which will be
-explored in the future.  However, for now, this loader does not support
-instance extensions which don't take a physical device as their first parameter.
+注意，对于一个普通实例函数调用，加载器必须处理好把函数调用传递给可用的ICD。如果加载器不知道实例调用的参数或者返回值，就不可能正确的把信息传递到ICD。
+有很多办法可以做到这样，将在后面提到。然而，目前，加载器不支持把物理设备作为第一个参数的实例拓展。
 
 Because the device call-chain does not normally pass through the loader
 *terminator*, this is not a problem for device extensions.  Additionally,
@@ -530,18 +508,13 @@ terminate directly in the ICD they are associated with.
 
 *Is this a big problem?*
 <br/>
-No!  Most extension functionality only affects either a physical or logical
-device and not an instance.  Thus, the overwhelming majority of extensions
-should be supported with direct loader support.
+No!  绝大多数拓展功能只影响一个物理设备或者逻辑设备，并不影响实例。故，大多数拓展都应该被加载器所直接支持。
 
 ##### Filtering Out Unknown Instance Extension Names
-In some cases, an ICD may support instance extensions that the loader does not.
-For the above reasons, the loader will filter out the names of these unknown instance
-extensions when an application calls `vkEnumerateInstanceExtensionProperties`.
-Additionally, this behavior will cause the loader to throw an error during
-`vkCreateInstance` if you still attempt to use one of these extensions.  The intent is
-to protect applications so that they don't inadvertantly use functionality
-which could lead to a crash.  
+在一些情形下，一个ICD可能支持实例拓展，但加载器并不支持。
+对于以上原因，当应用程序调用`vkEnumerateInstanceExtensionProperties`时，加载器将过滤掉这些未知的实例拓展的名字。
+另外，如果你继续使用这些拓展，此行为将导致加载器在运行`vkCreateInstance`时抛出一个错误。
+这将保护应用程序，避免其使用能致其崩溃的功能。
 
 另外一方面，如果你能够安全的使用拓展，你可以定义环境变量 `VK_LOADER_DISABLE_INST_EXT_FILTER` 来关闭过滤，并设置这个值为一个非0值。
 这将高效禁用加载器的过滤实例拓展的名字。
