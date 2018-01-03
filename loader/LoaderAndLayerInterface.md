@@ -556,54 +556,33 @@ In this section we'll discuss how the loader interacts with layers, including:
  
 #### Layer Discovery
 
-As mentioned in the
-[Application Interface section](#implicit-vs-explicit-layers),
-layers can be categorized into two categories:
+如在[Application Interface section](#implicit-vs-explicit-layers) 一节中提到的，layers可以分为两类：
  * Implicit Layers
  * Explicit Layers
 
-The main difference between the two is that Implicit Layers are automatically
-enabled, unless overriden, and Explicit Layers must be enabled.  Remember,
-Implicit Layers are not present on all Operating Systems (like Android).
+主要的区别为隐式层是自动开启的（除非被overriden了），显式层必须被开启。记住，隐式层并不是在所有的操作系统中都存在（如Android）。
 
-On any system, the loader looks in specific areas for information on the
-layers that it can load at a user's request.  The process of finding the
-available layers on a system is known as Layer Discovery.  During discovery,
-the loader determines what layers are available, the layer name, the layer
-version, and any extensions supported by the layer.  This information is
-provided back to an application through `vkEnumerateInstanceLayerProperties`.
 
-The group of layers available to the loader is known as a layer library.  This
-section defines an extensible interface to discover what layers are contained in
-the layer library.
+在任何系统上，加载器按照用户的要求在特定位置查找可用的layers。在系统中寻找可用的layers的过程也被称为“Layer Discovery”。在寻找过程中，
+加载器决定采用哪些layers，layers的名字，layers的版本，和layer支持的拓展。这些信息由应用程序通过`vkEnumerateInstanceLayerProperties`可获取到。
 
-This section also specifies the minimal conventions and rules a layer must
-follow, especially with regards to interacting with the loader and other layers.
+对加载器可用的layers群组也被称为layer库。本节定义了发现layer库包含哪些layer的拓展接口。
+
+本节也指定了最小惯例和layer必须遵守的规则，特别是涉及到与加载器和其他layer有交互的layer。
 
 ##### Layer Manifest File Usage
 
-On Windows and Linux systems, JSON formatted manifest files are used to store
-layer information.  In order to find system-installed layers, the Vulkan loader
-will read the JSON files to identify the names and attributes of layers and
-their extensions. The use of manifest files allows the loader to avoid loading
-any shared library files when the application does not query nor request any
-extensions.  The format of [Layer Manifest File](#layer-manifest-file-format)
-is detailed below.
+在Windows和Linux系统上，JSON格式的配置文件被用来存储layer信息。为了找到系统安装的layers，Vulkan加载器将会读取这些JSON文件来知晓layer与拓展的名字和属性。
+配置文件的使用允许加载器避免加载了任何应用程序用不到的layer或拓展。[Layer Manifest File](#layer-manifest-file-format) 的格式在下面会详细讲述。
 
-The Android loader does not use manifest files.  Instead, the loader queries the
-layer properties using special functions known as "introspection" functions.
-The intent of these functions is to determine the same required information
-gathered from reading the manifest files.  These introspection functions are
-not used by the desktop loader but should be present in layers to maintain
-consistency.  The specific "introspection" functions are called out in
-the [Layer Manifest File Format](#layer-manifest-file-format) table.
+Android加载器不使用配置文件。相反，加载器使用特殊的函数--自省函数--来查询layer属性。
+使用这些函数的目标是为了获取到与读取配置文件相同的信息。这些自省函数不会被桌面端加载器使用，但应该在layer中存在并保持一致性。特定的自省函数通过
+ [Layer Manifest File Format](#layer-manifest-file-format) 表被调用。
 
 
 ##### Android Layer Discovery
 
-On Android, the loader looks for layers to enumerate in the
-/data/local/debug/vulkan folder.  An application enabled for debug has the
-ability to enumerate and enable any layers in that location.
+在Android上，加载器遍历/data/local/debug/vulkan文件夹来搜寻layers。应用程序debug版本可以遍历并启用该位置的layers。
 
 
 ##### Windows Layer Discovery
