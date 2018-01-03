@@ -1642,14 +1642,9 @@ ICD to properly hand-shake.
 
 ### ICD Discovery
 
-Vulkan allows multiple drivers each with one or more devices (represented by a
-Vulkan `VkPhysicalDevice` object) to be used collectively. The loader is
-responsible for discovering available Vulkan ICDs on the system. Given a list
-of available ICDs, the loader can enumerate all the physical devices available
-for an application and return this information to the application. The process
-in which the loader discovers the available Installable Client Drivers (ICDs)
-on a system is platform dependent. Windows, Linux and Android ICD discovery
-details are listed below.
+Vulkan 允许多个驱动对应着一个或多个设备（由`VkPhysicalDevice`对象表示）一起被使用。加载器负责寻找系统中可用的Vulkan　ICD。
+给定了一个列表的ICDs，加载遍历所有的物理设备并给应用程序返回可用的信息。这个由加载器发现系统上可用的 Installable Client Drivers (ICDs) 过程依赖于系统。
+Windows、Linux和Android ICD搜寻的差异细节如下。
 
 #### Overriding the Default ICD Usage
 
@@ -1684,36 +1679,24 @@ to the Intel Mesa driver's ICD Manifest file.
 
 #### ICD Manifest File Usage
 
-As with layers, on Windows and Linux systems, JSON formatted manifest files are
-used to store ICD information.  In order to find system-installed drivers, the
-Vulkan loader will read the JSON files to identify the names and attributes of
-each driver.  One thing you will notice is that ICD Manifest files are much
-simpler than the corresponding layer Manifest files.
+和layers相同，在Windows和Linux系统上，JSON格式的明细文件被用来存储ICD信息。为了找到系统安装的驱动，Vulkan加载器将读取JSON文件来指定每一个驱动的名字和属性。
+你需要注意的一点是ICD明细文件比对应的layer明细文件要简单的多。
 
-See the [Current ICD Manifest File Format](#icd-manifest-file-format) section
-for more details.
+参考 [Current ICD Manifest File Format](#icd-manifest-file-format) 小节获取更多细节信息。
 
 
 #### ICD Discovery on Windows
+为了寻找已安装的ICD，加载器扫描显示适配器对应的注册表key和这些适配器相关 的软件组件对应的JSON明细文件。这些注册表key都在device keys中，在驱动程序安装时
+创建，包含了基础的配置信息，如OpenGL和Direct3D ICD位置。
 
-In order to find installed ICDs, the loader scans through registry keys specific to Display
-Adapters and all Software Components associated with these adapters for the
-locations of JSON manifest files. These keys are located in device keys
-created during driver installation and contain configuration information
-for base settings, including OpenGL and Direct3D ICD location.
-
-The Device Adapter and Software Component key paths should be obtained through the PnP
-Configuration Manager API. The `000X` key will be a numbered key, where each
-device is assigned a different number.
+设备适配器和软件组件的key路径应通过PnP配置管理器API来获取。`000X` key是一个可编号的key，每一个设备都被赋予一个不同的号码。
 
 ```
    HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Class\{Adapter GUID}\000X\VulkanDriverName
    HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Class\{SoftwareComponent GUID}\000X\VulkanDriverName
 ```
 
-In addition, on 64-bit systems there may be another set of registry values, listed
-below. These values record the locations of 32-bit layers on 64-bit operating systems,
-in the same way as the Windows-on-Windows functionality.
+此外，在64-bit系统上，也许有另外一套注册值，如下所示。这些值记录了64-bit系统上32-bit layer的路径，和Windows-on-Windows功能类似。
 
 ```
    HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Class\{Adapter GUID}\000X\VulkanDriverNameWow
@@ -1730,9 +1713,7 @@ Additionally, the Vulkan loader will scan the values in the following Windows re
 ```
    HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\Drivers
 ```
-
-For 32-bit applications on 64-bit Windows, the loader scan's the 32-bit
-registry location:
+对于64-bit系统上32-bit应用程序，加载器扫描32-bit注册表条目位置：
 
 ```
    HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Khronos\Vulkan\Drivers
@@ -1772,8 +1753,7 @@ details.
 
 #### ICD Discovery on Linux
 
-In order to find installed ICDs, the Vulkan loader will scan the files
-in the following Linux directories:
+为了找到安装的ICDs，Vulkan加载器扫描如下Linux目录：
 
 ```
     /usr/local/etc/vulkan/icd.d
@@ -1786,7 +1766,7 @@ in the following Linux directories:
 The "/usr/local/*" directories can be configured to be other directories at
 build time.
 
-The typical usage of the directories is indicated in the table below.
+目录的典型用途如下表所示：
 
 | Location  |  Details |
 |-------------------|------------------------|
@@ -1812,42 +1792,30 @@ to expose any issues.
 
 #### Using Pre-Production ICDs on Windows and Linux
 
-Independent Hardware Vendor (IHV) pre-production ICDs. In some cases, a
-pre-production ICD may be in an installable package. In other cases, a
-pre-production ICD may simply be a shared library in the developer's build tree.
-In this latter case, we want to allow developers to point to such an ICD without
-modifying the system-installed ICD(s) on their system.
+独立设备提供商（IHV）预发布版本ICDs。在一些情形下，一个预发布ICD也可以是一个可安装的包。在其他情形下，一个预发布ICD也许只是一个指向开发版本的
+连接库。在后者中，我们想要允许开发者可以指向该ICD而无需修改系统安装的ICD。
 
-This need is met with the use of the "VK\_ICD\_FILENAMES" environment variable,
-which will override the mechanism used for finding system-installed ICDs. In
-other words, only the ICDs listed in "VK\_ICD\_FILENAMES" will be used.
+这个需求可以使用"VK\_ICD\_FILENAMES" 环境变量来实现，它将覆盖寻找系统已安装ICD机制。亦即，只有在"VK\_ICD\_FILENAMES" 中的ICDs才会被使用。
 
-The "VK\_ICD\_FILENAMES" environment variable is a list of ICD
-manifest files, containing the full path to the ICD JSON Manifest file.  This
-list is colon-separated on Linux, and semi-colon separated on Windows.
+ "VK\_ICD\_FILENAMES" 环境变量是一个包含了ICD明细文件的列表，包含了ICD JSON明细文件的全路径。
+这个列表在Linux上有冒号分隔，在Windows上用分号分隔。 
 
-Typically, "VK\_ICD\_FILENAMES" will only contain a full pathname to one info
-file for a developer-built ICD. A separator (colon or semi-colon) is only used
-if more than one ICD is listed.
+通常， "VK\_ICD\_FILENAMES" 只会包含一个指向开发者编译的ICD。分隔符（冒号或者分号）只会在列表中有多个ICD时使用。
 
 **NOTE:** On Linux, this environment variable will be ignored for suid programs.
 
 
 #### ICD Discovery on Android
 
-The Android loader lives in the system library folder. The location cannot be
-changed. The loader will load the driver/ICD via hw\_get\_module with the ID
-of "vulkan". **Due to security policies in Android, none of this can be modified
-under normal use.**
+Android 加载器在系统库目录。位置不可被更改。加载器将通过以“vulkan”为ID用 hw\_get\_module来获取驱动/ICD。 
+** 因为Android系统的安全策略，在正常使用中这些东西都不可被修改。**
 
 
 ### ICD Manifest File Format
 
-The following section discusses the details of the ICD Manifest JSON file
-format.  The JSON file itself does not have any requirements for naming.  The
-only requirement is that the extension suffix of the file ends with ".json".
+如下小节讨论了ICD JSON 明细文件的格式。 JSON文件自身没有名字的限制。仅有的要求是文件的后缀必须是 ".json"。
 
-Here is an example ICD JSON Manifest file:
+如下是一个ICD JSON明细文件的例子：
 
 ```
 {
@@ -1887,22 +1855,16 @@ fields of a layer JSON file.  The fields of the 1.0.0 file format include:
  
 ###  ICD Vulkan Entry-Point Discovery
 
-The Vulkan symbols exported by an ICD must not clash with the loader's exported
-Vulkan symbols.  This could be for several reasons.  Because of this, all ICDs
-must export the following function that is used for discovery of ICD Vulkan
-entry-points.  This entry-point is not a part of the Vulkan API itself, only a
-private interface between the loader and ICDs for version 1 and higher
-interfaces.
+ICD导出的Vulkan符号不能和加载器导出的Vulkan符号冲突。有几个原因。因此，所有的ICD必须必须导出如下的函数，用来发现ICD函数指针。
+此函数指针并不是Vulkan API的一部分，只是加载器和ICD版本1或更高之间的私有接口。
 
 ```cpp
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vk_icdGetInstanceProcAddr(
                                                VkInstance instance,
                                                const char* pName);
 ```
-
-This function has very similar semantics to `vkGetInstanceProcAddr`.
-`vk_icdGetInstanceProcAddr` returns valid function pointers for all the global-
-level and instance-level Vulkan functions, and also for `vkGetDeviceProcAddr`.
+这个函数和 `vkGetInstanceProcAddr`有非常相似的语义。`vk_icdGetInstanceProcAddr` 返回个有效的函数指针，
+指向了全局和实例级Vulkan函数，也可指向 `vkGetDeviceProcAddr`。
 Global-level functions are those which contain no dispatchable object as the
 first parameter, such as `vkCreateInstance` and
 `vkEnumerateInstanceExtensionProperties`. The ICD must support querying global-
@@ -1916,35 +1878,27 @@ than `VkInstance` and `VkPhysicalDevice`, in which case extension entry-points
 using these newly defined dispatchable objects must be queryable via
 `vk_icdGetInstanceProcAddr`.
 
-All other Vulkan entry-points must either:
- * NOT be exported directly from the ICD library
- * or NOT use the official Vulkan function names if they are exported
+其他的Vulkan函数指针必须：
+ * 不能通过ICD库直接导出
+ * 或导出的名字不同使用官方Vulkan函数名字
  
-This requirement is for ICD libraries that include other
-functionality (such as OpenGL) and thus could be loaded by the
-application prior to when the Vulkan loader library is loaded by the
-application.
+这个要求并不针对ICD库包含的其他功能（如OpenGL）和应用程序在载入Vulkan之前就载入的功能。
 
-Beware of interposing by dynamic OS library loaders if the official Vulkan
-names are used. On Linux, if official names are used, the ICD library must be
-linked with -Bsymbolic.
+如果使用了Vulkan函数名字，对系统动态加载库加载的符号一定要小心。在Linux上，如果使用了Vulkan函数名字，ICD库必须通过-Bsymbolic来链接。
 
 
 ### ICD Unknown Physical Device Extensions
 
-Originally, if the loader was called with `vkGetInstanceProcAddr`, it would
-result in the following behavior:
- 1. The loader would check if core function:
-    - If it was, it would return the function pointer
- 2. The loader would check if known extension function:
-    - If it was, it would return the function pointer
- 3. If the loader knew nothing about it, it would call down using
-`GetInstanceProcAddr`
-    - If it returned non-NULL, treat it as an unknown logical device command.
-    - This meant setting up a generic trampoline function that takes in a
-VkDevice as the first parameter and adjusting the dispatch table to call the
-ICD/Layers function after getting the dispatch table from the VkDevice.
- 4. If all the above failed, the loader would return NULL to the application.
+
+起始时，若加载器是通过调用 `vkGetInstanceProcAddr`才使用到的，它将导致如下行为：
+ 1. 加载器将检查核心函数：
+    - 如果是核心函数，加载器将返回函数指针
+ 2. 加载器将检查已知的拓展函数：
+    - 如果是拓展函数，加载器将返回函数指针
+ 3. 若加载器不知道它的信息，它将按照如下方式来使用`GetInstanceProcAddr`
+    - 如果他返回non-NULL，把它动作未知的逻辑设备命令
+    - 这意味着创建了一个通用的trampoline函数，接受VKDevice做为第一个参数，在从VKDevice中获取到转发表后，调整转发表来调用ICD/Layers 函数。
+ 4. 若以上都失败了，加载器将向应用程序返回  NULL 。
 
 This caused problems when an ICD attempted to expose new physical device
 extensions the loader knew nothing about, but an application did.  Because the
@@ -2010,24 +1964,19 @@ attempting to use the commands.
 
 ### ICD Dispatchable Object Creation
 
-As previously covered, the loader requires dispatch tables to be accessible
-within Vulkan dispatchable objects, such as: `VkInstance`, `VkPhysicalDevice`,
-`VkDevice`, `VkQueue`, and `VkCommandBuffer`. The specific requirements on all
-dispatchable objects created by ICDs are as follows:
+如前面提到过的，加载器要求转发表在Vulkan可转发对象内部可访问到，如：`VkInstance`, `VkPhysicalDevice`,
+`VkDevice`, `VkQueue`, and `VkCommandBuffer`。此条限制对ICD创建的可转发对象要求如下：
 
-- All dispatchable objects created by an ICD can be cast to void \*\*
-- The loader will replace the first entry with a pointer to the dispatch table
-  which is owned by the loader. This implies three things for ICD drivers
-  1. The ICD must return a pointer for the opaque dispatchable object handle
-  2. This pointer points to a regular C structure with the first entry being a
-   pointer.
+- 所有被ICD创建的可转发对象可以被强制类型转换为 void \*\*
+- 加载器将替换替换第一个成员为加载器的转发表的指针。这对ICD驱动来说意味三点：
+  1. ICD必须返回一个不可见的可转发对象的handle
+  2. 这个指针必须指向一个常规的C结构体，第一个成员是一个指针。
    * **NOTE:** For any C\++ ICD's that implement VK objects directly as C\++
 classes.
      * The C\++ compiler may put a vtable at offset zero if your class is non-
 POD due to the use of a virtual function.
      * In this case use a regular C structure (see below).
-  3. The loader checks for a magic value (ICD\_LOADER\_MAGIC) in all the created
-   dispatchable objects, as follows (see `include/vulkan/vk_icd.h`):
+  3. 加载器检查 被创建的不可转发对象的魔法数字(ICD\_LOADER\_MAGIC) ，参考 ( `include/vulkan/vk_icd.h`):
 
 ```cpp
 #include "vk_icd.h"
